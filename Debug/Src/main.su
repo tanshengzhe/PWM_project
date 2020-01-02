@@ -1,0 +1,13 @@
+main.c:111:5:main	16	static
+main.c:179:6:SystemClock_Config	312	static
+main.c:245:13:MX_ETH_Init	16	static
+main.c:294:13:MX_TIM3_Init	72	static
+main.c:367:13:MX_TIM12_Init	56	static
+main.c:419:13:MX_USART3_UART_Init	8	static
+main.c:467:13:MX_USB_OTG_FS_PCD_Init	8	static
+main.c:503:13:MX_GPIO_Init	56	static
+main.c:565:6:TIM_SetTIM12Changefrequency2	16	static
+main.c:573:7:getduty	4	static
+main.c:581:6:getfreq	4	static
+main.c:587:6:HAL_TIM_IC_CaptureCallback	16	static
+main.c:614:6:Error_Handler	4	static
