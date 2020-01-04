@@ -77,6 +77,7 @@ ETH_HandleTypeDef heth;
 
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim12;
+TIM_HandleTypeDef htim13;
 
 UART_HandleTypeDef huart3;
 
@@ -94,6 +95,7 @@ static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_FS_PCD_Init(void);
 static void MX_TIM12_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_TIM13_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -139,12 +141,19 @@ float temp1,temp2;
   MX_USB_OTG_FS_PCD_Init();
   MX_TIM12_Init();
   MX_TIM3_Init();
+  MX_TIM13_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim12,TIM_CHANNEL_2);
   HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_1);   //TIM3输入出发使能
   HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_2);
-  //__HAL_TIM_ENABLE_IT(&htim3,TIM_IT_UPDATE);
+  HAL_TIM_Base_Start_IT(&htim13);
 
+  delay_init();
+  NVIC_Configuration();
+  OLED_Init();
+  OLED_Clear()  	;
+  //__HAL_TIM_ENABLE_IT(&htim3,TIM_IT_UPDATE);
+  //OLED_ShowString(63,6,"CODE:");
 
   /* USER CODE END 2 */
 
@@ -155,14 +164,17 @@ float temp1,temp2;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-/*	  TIM_SetTIM12Changefrequency2(49,99);//10kHz
-	  HAL_Delay(5000);
-	  TIM_SetTIM12Changefrequency2(499,999);//10kHz
-	  HAL_Delay(5000);*/
-
-	  temp1=duty;
-	  temp2=freq;
+	  //TIM_SetTIM12Changefrequency2(49,99);//10kHz
 	  //HAL_Delay(1000);
+	  TIM_SetTIM12Changefrequency2(20,99);//10kHz
+	  delay_ms(1000);
+	  TIM_SetTIM12Changefrequency2(80,99);//10kHz
+	  delay_ms(1000);
+
+	 /* temp1=duty;
+	  temp2=freq;*/
+	  //HAL_Delay(1000);
+
 
 
 
@@ -412,6 +424,37 @@ static void MX_TIM12_Init(void)
 }
 
 /**
+  * @brief TIM13 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM13_Init(void)
+{
+
+  /* USER CODE BEGIN TIM13_Init 0 */
+
+  /* USER CODE END TIM13_Init 0 */
+
+  /* USER CODE BEGIN TIM13_Init 1 */
+
+  /* USER CODE END TIM13_Init 1 */
+  htim13.Instance = TIM13;
+  htim13.Init.Prescaler = 9600;
+  htim13.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim13.Init.Period = 4999;
+  htim13.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim13.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim13) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM13_Init 2 */
+
+  /* USER CODE END TIM13_Init 2 */
+
+}
+
+/**
   * @brief USART3 Initialization Function
   * @param None
   * @retval None
@@ -506,18 +549,28 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
-  __HAL_RCC_GPIOE_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(OLED_DC_GPIO_Port, OLED_DC_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LD1_Pin|LED3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOE, OLED_RES_Pin|OLED_CS_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_OTG_FS_PWR_EN_GPIO_Port, USB_OTG_FS_PWR_EN_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOD, OLED_D1_Pin|OLED_D0_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
@@ -528,6 +581,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : OLED_DC_Pin */
+  GPIO_InitStruct.Pin = OLED_DC_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(OLED_DC_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pins : LD1_Pin LED3_Pin */
   GPIO_InitStruct.Pin = LD1_Pin|LED3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -535,12 +595,26 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : OLED_RES_Pin OLED_CS_Pin */
+  GPIO_InitStruct.Pin = OLED_RES_Pin|OLED_CS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
   /*Configure GPIO pin : USB_OTG_FS_PWR_EN_Pin */
   GPIO_InitStruct.Pin = USB_OTG_FS_PWR_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(USB_OTG_FS_PWR_EN_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : OLED_D1_Pin OLED_D0_Pin */
+  GPIO_InitStruct.Pin = OLED_D1_Pin|OLED_D0_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pin : USB_OTG_FS_OVCR_Pin */
   GPIO_InitStruct.Pin = USB_OTG_FS_OVCR_Pin;
@@ -560,7 +634,7 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 /**
  * TIM12CH2
- * 设置占空�????????
+ * 设置占空�??????????
  */
 void TIM_SetTIM12Changefrequency2(uint32_t compare,uint32_t frequency)
 {
@@ -568,7 +642,7 @@ void TIM_SetTIM12Changefrequency2(uint32_t compare,uint32_t frequency)
 	TIM12->ARR=frequency;
 }
 /**
- * 获取占空�??????
+ * 获取占空�????????
  */
 float getduty()
 {
@@ -596,14 +670,26 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 	        	freq=tmp1;
 	        	duty=tmp2*100/tmp1;
 	        }
+	        else
+	        {
+	        	duty=0;
+	        	freq=0;
+	        }
 	    }
 	    else if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
 	    {
-	        tmp2 = HAL_TIM_ReadCapturedValue(&htim3, TIM_CHANNEL_2);//占空�??????
+	        tmp2 = HAL_TIM_ReadCapturedValue(&htim3, TIM_CHANNEL_2);//占空�????????
 
 	    }
 }
 
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim==(&htim13))
+	{
+		OLED_ShowNum(64,5,duty,3,16);
+	}
+}
 
 /* USER CODE END 4 */
 
