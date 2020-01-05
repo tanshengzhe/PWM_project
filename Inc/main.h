@@ -60,8 +60,9 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define B1_Pin GPIO_PIN_13
-#define B1_GPIO_Port GPIOC
+#define blue_button_Pin GPIO_PIN_13
+#define blue_button_GPIO_Port GPIOC
+#define blue_button_EXTI_IRQn EXTI15_10_IRQn
 #define OLED_DC_Pin GPIO_PIN_10
 #define OLED_DC_GPIO_Port GPIOF
 #define LD1_Pin GPIO_PIN_0
@@ -70,6 +71,8 @@ void Error_Handler(void);
 #define OLED_RES_GPIO_Port GPIOE
 #define OLED_CS_Pin GPIO_PIN_8
 #define OLED_CS_GPIO_Port GPIOE
+#define key_2_Pin GPIO_PIN_10
+#define key_2_GPIO_Port GPIOB
 #define LED3_Pin GPIO_PIN_14
 #define LED3_GPIO_Port GPIOB
 #define STLINK_RX_Pin GPIO_PIN_8
@@ -78,12 +81,26 @@ void Error_Handler(void);
 #define STLINK_TX_GPIO_Port GPIOD
 #define USB_OTG_FS_PWR_EN_Pin GPIO_PIN_10
 #define USB_OTG_FS_PWR_EN_GPIO_Port GPIOD
+#define key_8_Pin GPIO_PIN_12
+#define key_8_GPIO_Port GPIOD
+#define key_7_Pin GPIO_PIN_13
+#define key_7_GPIO_Port GPIOD
 #define OLED_D1_Pin GPIO_PIN_14
 #define OLED_D1_GPIO_Port GPIOD
 #define OLED_D0_Pin GPIO_PIN_15
 #define OLED_D0_GPIO_Port GPIOD
 #define USB_OTG_FS_OVCR_Pin GPIO_PIN_7
 #define USB_OTG_FS_OVCR_GPIO_Port GPIOG
+#define key_1_Pin GPIO_PIN_7
+#define key_1_GPIO_Port GPIOC
+#define key_6_Pin GPIO_PIN_10
+#define key_6_GPIO_Port GPIOA
+#define key_5_Pin GPIO_PIN_3
+#define key_5_GPIO_Port GPIOB
+#define key_3_Pin GPIO_PIN_4
+#define key_3_GPIO_Port GPIOB
+#define key_4_Pin GPIO_PIN_5
+#define key_4_GPIO_Port GPIOB
 #define LD2_Pin GPIO_PIN_1
 #define LD2_GPIO_Port GPIOE
 /* USER CODE BEGIN Private defines */

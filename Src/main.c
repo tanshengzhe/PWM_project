@@ -25,6 +25,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,6 +41,9 @@ volatile int duty_zu[2]={0,0};
 volatile uint32_t freq = 0;
 volatile uint32_t tmp1 = 0;
 volatile uint32_t tmp2 = 0;
+volatile uint8_t Key_row[1]={0xff};   //保存按键行扫描情况的状�?�数�???
+volatile uint32_t dutyset=0;
+int freq_flag=0;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -152,8 +156,7 @@ float temp1,temp2;
   NVIC_Configuration();
   OLED_Init();
   OLED_Clear()  	;
-  //__HAL_TIM_ENABLE_IT(&htim3,TIM_IT_UPDATE);
-  //OLED_ShowString(63,6,"CODE:");
+
 
   /* USER CODE END 2 */
 
@@ -166,10 +169,10 @@ float temp1,temp2;
     /* USER CODE BEGIN 3 */
 	  //TIM_SetTIM12Changefrequency2(49,99);//10kHz
 	  //HAL_Delay(1000);
-	  TIM_SetTIM12Changefrequency2(20,99);//10kHz
+/*	  TIM_SetTIM12Changefrequency2(20,99);//10kHz
 	  delay_ms(1000);
 	  TIM_SetTIM12Changefrequency2(80,99);//10kHz
-	  delay_ms(1000);
+	  delay_ms(1000);*/
 
 	 /* temp1=duty;
 	  temp2=freq;*/
@@ -561,25 +564,28 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(OLED_DC_GPIO_Port, OLED_DC_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LED3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LED3_Pin|key_5_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOE, OLED_RES_Pin|OLED_CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(USB_OTG_FS_PWR_EN_GPIO_Port, USB_OTG_FS_PWR_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, USB_OTG_FS_PWR_EN_Pin|key_8_Pin|key_7_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, OLED_D1_Pin|OLED_D0_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(key_6_GPIO_Port, key_6_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : B1_Pin */
-  GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+  /*Configure GPIO pin : blue_button_Pin */
+  GPIO_InitStruct.Pin = blue_button_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(blue_button_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : OLED_DC_Pin */
   GPIO_InitStruct.Pin = OLED_DC_Pin;
@@ -588,8 +594,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(OLED_DC_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD1_Pin LED3_Pin */
-  GPIO_InitStruct.Pin = LD1_Pin|LED3_Pin;
+  /*Configure GPIO pins : LD1_Pin LED3_Pin key_5_Pin */
+  GPIO_InitStruct.Pin = LD1_Pin|LED3_Pin|key_5_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -602,12 +608,18 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : USB_OTG_FS_PWR_EN_Pin */
-  GPIO_InitStruct.Pin = USB_OTG_FS_PWR_EN_Pin;
+  /*Configure GPIO pins : key_2_Pin key_3_Pin key_4_Pin */
+  GPIO_InitStruct.Pin = key_2_Pin|key_3_Pin|key_4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : USB_OTG_FS_PWR_EN_Pin key_8_Pin key_7_Pin */
+  GPIO_InitStruct.Pin = USB_OTG_FS_PWR_EN_Pin|key_8_Pin|key_7_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(USB_OTG_FS_PWR_EN_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pins : OLED_D1_Pin OLED_D0_Pin */
   GPIO_InitStruct.Pin = OLED_D1_Pin|OLED_D0_Pin;
@@ -622,6 +634,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USB_OTG_FS_OVCR_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : key_1_Pin */
+  GPIO_InitStruct.Pin = key_1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(key_1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : key_6_Pin */
+  GPIO_InitStruct.Pin = key_6_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(key_6_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pin : LD2_Pin */
   GPIO_InitStruct.Pin = LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -629,12 +654,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
 }
 
 /* USER CODE BEGIN 4 */
 /**
  * TIM12CH2
- * 设置占空�??????????
+ * 设置占空�??????????????
  */
 void TIM_SetTIM12Changefrequency2(uint32_t compare,uint32_t frequency)
 {
@@ -642,7 +671,7 @@ void TIM_SetTIM12Changefrequency2(uint32_t compare,uint32_t frequency)
 	TIM12->ARR=frequency;
 }
 /**
- * 获取占空�????????
+ * 获取占空�????????????
  */
 float getduty()
 {
@@ -667,7 +696,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 	        tmp1 = HAL_TIM_ReadCapturedValue(&htim3, TIM_CHANNEL_1);//周期
 	        if(tmp1!=0)
 	        {
-	        	freq=tmp1;
+	        	freq=1000000/tmp1;
 	        	duty=tmp2*100/tmp1;
 	        }
 	        else
@@ -678,16 +707,35 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 	    }
 	    else if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
 	    {
-	        tmp2 = HAL_TIM_ReadCapturedValue(&htim3, TIM_CHANNEL_2);//占空�????????
+	        tmp2 = HAL_TIM_ReadCapturedValue(&htim3, TIM_CHANNEL_2);//占空�????????????
 
 	    }
 }
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)//oled显示屏显示中断
 {
 	if(htim==(&htim13))
 	{
 		OLED_ShowNum(64,5,duty,3,16);
+		OLED_ShowNum(5,5,freq,7,16);
+
+	}
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	dutyset=dutyset+10;
+	if(freq_flag)
+	{
+		TIM_SetTIM12Changefrequency2(dutyset*10,999);
+	}
+	else{
+	TIM_SetTIM12Changefrequency2(dutyset,99);
+	}
+	if(dutyset==90)
+	{
+		dutyset=0;
+		freq_flag=~freq_flag;
 	}
 }
 
